@@ -1,0 +1,417 @@
+# Inert library processing
+## First Set of Inert Library of Sequencing 
+  * Files for this processing are located in the following directory: /home/jkg36/scratch60/2016_09_27_INERT_Full_Lane/
+
+  * Directory ~/ is /home/jkg36/
+
+### Code ran:
+**Pull Reads:**
+
+```{r ,  eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=50)}
+  zcat /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R1_0* > HC_RQ5138_R1.fastq
+	
+  zcat /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R2_0* > HC_RQ5138_R2.fastq
+```
+**Orient Reads so that 5` + Strand is Read One and 3' - Strand is Read Two:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	python ~/Scripts/Strander.py HC_RQ5138_R1.fastq HC_RQ5138_R2.fastq > Trial_One.txt
+```
+**Align Read One and Read two into a Contig and Trim into CREs and Tags**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	time fastx_trimmer -Q 33 -f 10 -i ReadOne.fastq -o R1_Trimmed.fastq
+
+	time pear -j 20 -q 33 -f R1_Trimmed.fastq -r ReadTwo.fastq -o AlignedReads > Pear_Log.txt
+
+	cutadapt -e 0.16 -g ACTGGCCGCTTGACG -o 5P_Cut_Seqs.fastq AlignedReads.assembled.fastq > 5PrimeTrim_Log.txt
+	cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o 3PCut_Seqs.fastq 5P_Cut_Seqs.fastq > 3PrimeTrim_Log.txt
+	cutadapt -e 0.16 -g CACTGCGGCTCCTGCGGTACCTCTAGA -o Tags.fastq 3PCut_Seqs.fastq > Tag_Trim_Log.txt
+	cutadapt -e 0.16 -a CACTGCGGCTCCTGCGGTACCTCTAGA -o Cres.fastq 3PCut_Seqs.fastq  > Cre_Trim_Log.txt
+```
+**Match CREs to Tags:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/Matcher.py Cres.fastq Tags.fastq > Uncut_Seqs.txt
+```
+**Align CREs with Global Alignment Meathod:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	bowtie2 -S TestOutput.sam --end-to-end -x /home/jkg36/Genomes/MPRA/Lib_Align_Files/	Condensed_HC_Lib/HC_GenomicBased_Library_Bwtie2Index -U Final_Cres.fastq
+
+	samtools view -Sb  TestOutput.sam  > TestOutput.bam
+```
+**Pull Alignment Score Information and Annotate and Annotate with Library Entry**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/FINAL_Genomic_Parser.py TestOutput.bam ~/Scripts/LibTranslation.txt
+
+	python  ~/Scripts/Cigar_Tag_Anote.py CigarParsedMatched.txt Compiled_Cre_tags.txt
+```
+**Filter for Percent Identity**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	cp ~/Scripts/ProcessR.R .
+
+	R CMD BATCH ProcessR.R 
+
+	sed 's/ //g' Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt > temp
+	sed 's/"//g' temp > temp2
+	mv temp2 Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+	rm temp
+```
+**Annotate with Tag sequence**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/Genomic_Align_MPRA_Translator.py Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt > Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+```
+
+## Second Set of Inert Library of Sequencing 
+  * Files for this processing are located in the following directory: /home/jkg36/scratch60/2016_09_29_Redo_InitialInert_LibrarySeq/
+
+### Code ran:
+**Pull Reads:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	zcat /ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R1_0* > HC_RQ4789_R1.f
+astq
+	zcat /ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R2_0* > HC_RQ4789_R2.f
+astq
+```
+**Orient Reads so that 5` + Strand is Read One and 3' - Strand is Read Two:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/Strander.py HC_RQ4789_R1.fastq HC_RQ4789_R2.fastq > StanderSTATs.txt
+```
+
+**Align Read One and Read two into a Contig and Trim into CREs and Tags**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	time fastx_trimmer -Q 33 -f 10 -i ReadOne.fastq -o R1_Trimmed.fastq
+
+	time pear -j 20 -q 33 -f R1_Trimmed.fastq -r ReadTwo.fastq -o AlignedReads > Pear_Log.txt
+
+	cutadapt -e 0.16 -g ACTGGCCGCTTGACG -o 5P_Cut_Seqs.fastq AlignedReads.assembled.fastq > 5PrimeTrim_Log.txt
+	cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o 3PCut_Seqs.fastq 5P_Cut_Seqs.fastq > 3PrimeTrim_Log.txt
+	cutadapt -e 0.16 -g CACTGCGGCTCCTGCGGTACCTCTAGA -o Tags.fastq 3PCut_Seqs.fastq > Tag_Trim_Log.txt
+	cutadapt -e 0.16 -a CACTGCGGCTCCTGCGGTACCTCTAGA -o Cres.fastq 3PCut_Seqs.fastq  > Cre_Trim_Log.txt
+```
+**Match CREs to Tags:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/Matcher.py Cres.fastq Tags.fastq > Uncut_Seqs.txt
+
+```
+**Align CREs with Global Alignment Meathod:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	bowtie2 -S TestOutput.sam --end-to-end -x /home/jkg36/Genomes/MPRA/Lib_Align_Files/	Condensed_HC_Lib/HC_GenomicBased_Library_Bwtie2Index -U Final_Cres.fastq
+
+	samtools view -Sb  TestOutput.sam  > TestOutput.bam
+```
+**Pull Alignment Score Information and Annotate and Annotate with Library Entry**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/FINAL_Genomic_Parser.py TestOutput.bam ~/Scripts/LibTranslation.txt
+
+	python ~/Scripts/Cigar_Tag_Anote.py CigarParsedMatched.txt Compiled_Cre_tags.txt
+```
+**Filter for Percent Identity**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	cp ~/Scripts/ProcessR.R .
+
+	R CMD BATCH ProcessR.R 
+
+	sed 's/ //g' Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt > temp
+	sed 's/"//g' temp > temp2
+	mv temp2 Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+	rm temp
+```
+**Annotate with Tag sequence**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}	
+	python ~/Scripts/Genomic_Align_MPRA_Translator.py Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt > Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+
+```
+
+# Combining Inert Library Data
+* Directory is: /home/jkg36/scratch60/Combine_Inert_Library_SeqLanes/
+
+#### Code Ran:
+**Pull the Previously made Percent Identitiy Alignment Files:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	cat /home/jkg36/scratch60/2016_09_29_Redo_InitialInert_LibrarySeq/Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt /home/jkg36/scratch60/2016_09_27_INERT_Full_Lane/Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt > Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+```
+**Remove Duplicates and Calculate Tag/Fragment Counts**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python ~/Scripts/MultipleTagged.py Translated_Parsed_Cigar_withTAG_TrimedPI_gt88_temp.txt
+	python ~/Scripts/RepeatFilter.py
+	python ~/Scripts/Tabulater.py
+```
+**Plot Sequencing Percent ID Histogram**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	cp ~/jkg36/PercentID.R .
+	R CMD BATCH PercentID.R
+
+```
+
+# Competent Library Sequencing 
+
+## First Set of Competent Library of Sequencing
+  * Files for this processing are located in the following directory: /home/jkg36/scratch60/2016_10_20_Comp_Lib_TagSeq/
+
+#### Code Ran:
+**Pull Reads:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	zcat /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R1_* > HC_RQ5336_R1.fastq
+	zcat /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R2_* > HC_RQ5336_R2.fastq
+
+```
+**Trim Low Qualities of the Ends of Reads:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	time fastx_trimmer -Q 33 -l 131 -i HC_RQ5336_R1.fastq -o R1_Trimmed.fastq
+	time fastx_trimmer -Q 33 -l 126 -i HC_RQ5336_R2.fastq -o R2_Trimmed.fastq
+```
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	time python ~/Scripts/TAG_Strander_V2016_10_31.py R1_Trimmed.fastq R2_Trimmed.fastq > Strander_Log.txt
+```
+**Align Read One and Read two into a Contig and Trim into Tags:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	time pear -j 20 -q 33 -f ReadOne.fastq -r ReadTwo.fastq -o AlignedReads > Pear_Log.txt
+
+	cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_Seqs.fastq AlignedReads.assembled.fastq > 5PrimeTrim_Log.txt
+	cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o Tags.fastq 5P_Cut_Seqs.fastq > 3PrimeTrim_Log.txt
+```
+**Tabulate Tag Counts:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	python ~/Scripts/Tag_Tabulator.py Tags.fastq 
+```
+## Second Set of Competent Library of Sequencing
+* Files for this processing are located in the following Directory: /home/jkg36/scratch60/2016_10_31_Spooky_CompLibTag_Sequencing
+
+### Code Ran:
+**Pull Reads:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	zcat /sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R1_0* > HC_RQ5336_2ndRun_R1.fastq
+	zcat /sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R1_0* > HC_RQ5336_2ndRun_R2.fastq
+```
+**Trim Low Qualities of the Ends of Reads:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	time fastx_trimmer -Q 33 -l 131 -i HC_RQ5336_2ndRun_R1.fastq -o R1_Trimmed.fastq
+	time fastx_trimmer -Q 33 -l 126 -i HC_RQ5336_2ndRun_R2.fastq -o R2_Trimmed.fastq
+```
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	time python ~/Scripts/TAG_Strander_V2016_10_31.py R1_Trimmed.fastq R2_Trimmed.fastq > Strander_Log.txt
+```
+**Align Read One and Read two into a Contig and Trim into Tags:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60) }
+	time pear -j 20 -q 33 -f ReadOne.fastq -r ReadTwo.fastq -o AlignedReads > Pear_Log.txt
+
+	cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_Seqs.fastq AlignedReads.assembled.fastq > 5PrimeTrim_Log.txt
+	cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o Tags.fastq 5P_Cut_Seqs.fastq > 3PrimeTrim_Log.txt
+```
+**Tabulate Tag Counts:**
+
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+	python Tag_Tabulator.py Tags.fastq
+
+```
+
+## Combine Competant Library Tag Counts
+* Files for this processing are located in the following Directory: /ycga-ba/home/jkg36/2016_11_29_MPRA_Data_Anaylsis/2016_11_10_Comp_LibSeq
+
+### Code ran:
+**Pull Previously Calculated Counts Files into directory**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    cp /home/jkg36/scratch60/2016_10_31_Spooky_CompLibTag_Sequencing/Tag_Counts.txt 2016_10_31_Tag_Counts.txt
+    cp /home/jkg36/scratch60/2016_10_20_Comp_Lib_TagSeq/Tag_Counts.txt/Tag_Counts.txt 2016_10_20_Tag_Counts.txt
+```
+**Combine tag counts into merged file**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    python ~/Scripts/Tag_Merger.py 2016_10_20_Tag_Counts.txt 2016_10_31_Tag_Counts.txt
+```
+
+# Identify Competant Library Tags Shared in Inert Library
+
+  * Files for this processing are located in the following Directory: /home/jkg36/2016_11_29_MPRA_Data_Anaylsis/Inert_Lib_Seq_Results_88PI**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+     
+    cp /home/jkg36/scratch60/Combine_Inert_Library_SeqLanes/Tag_Counts.txt Inert_Counts.txt
+    cp /ycga-ba/home/jkg36/2016_11_29_MPRA_Data_Anaylsis/2016_11_10_Comp_LibSeq/Tag_merge_counts.txt Competant_Counts.txt
+
+    python ~/Scripts/Common_Tags.py Competant_Counts.txt Inert_Counts.txt
+```
+
+# Replicate 1_2 Processing
+  * Files for this processing are located in the following Directory: /home/jkg36/scratch60/2016_11_21_RQ5500_Rep1_2**
+  
+## pDNA Tag Counts Processing
+
+### Code ran:
+**Pull Reads:**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+  
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_1_2_006/pDNA-1-2-006_S6_L00*_R1_* > HC_RQ5500_pDNA_R1.fastq
+  zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_1_2_006/pDNA-1-2-006_S6_L00*_R2_* > HC_RQ5500_pDNA_R2.fastq
+```
+
+**Trim Low Qualities of the Ends of Reads:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time fastx_trimmer -Q 33 -l 131 -i HC_RQ5500_pDNA_R1.fastq -o R1_pDNA_Trimmed.fastq
+    time fastx_trimmer -Q 33 -l 126 -i HC_RQ5500_pDNA_R2.fastq -o R2_pDNA_Trimmed.fastq
+
+```
+
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two, Rename Files so pDNA Doesn't Overwrite:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time python ~/Scripts/Tag_Strander_2016_11_21.py R1_pDNA_Trimmed.fastq R2_pDNA_Trimmed.fastq > Strander_pDNA_Log.txt
+    mv ReadTwo.fastq pDNA_ReadTwo.fastq
+    mv ReadOne.fastq pDNA_ReadOne.fastq
+    mv Garbage_IDs.txt pDNA_Garbage_IDs.txt
+
+```
+
+**Align Read One and Read two into a Contig, Trim into Tags, and Tabulate Counts:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time pear -j 20 -q 33 -f pDNA_ReadOne.fastq -r pDNA_ReadTwo.fastq -o pDNA_AlignedReads > Pear_pDNA_Log.txt
+
+    cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_pDNA_Seqs.fastq pDNA_AlignedReads.assembled.fastq > 5PrimeTrim_pDNA_Log.txt
+    cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o pDNA_Tags.fastq 5P_Cut_pDNA_Seqs.fastq > 3PrimeTrim_pDNA_Log.txt
+
+    python ~/Scripts/Tag_Tabulator_main.py pDNA_Tags.fastq pDNA_Tags.txt
+
+```
+
+## cDNA Tag Counts Processing
+
+### Code ran:
+**Pull Reads:**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+   
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R1_* > HC_RQ5500_cDNA_R1.fastq
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R2_* > HC_RQ5500_cDNA_R2.fastq
+```
+
+**Trim Low Qualities of the Ends of Reads:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time fastx_trimmer -Q 33 -l 131 -i HC_RQ5500_cDNA_R1.fastq -o R1_cDNA_Trimmed.fastq
+    time fastx_trimmer -Q 33 -l 126 -i HC_RQ5500_cDNA_R2.fastq -o R2_cDNA_Trimmed.fastq
+```
+
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two, Rename Files so pDNA Doesn't Overwrite:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time python ~/Scripts/Tag_Strander_2016_11_21.py R1_cDNA_Trimmed.fastq R2_cDNA_Trimmed.fastq > Strander_cDNA_Log.txt
+    mv ReadTwo.fastq cDNA_ReadTwo.fastq
+    mv ReadOne.fastq cDNA_ReadOne.fastq
+    mv Garbage_IDs.txt cDNA_Garbage_IDs.txt
+```
+
+**Align Read One and Read two into a Contig, Trim into Tags, and Tabulate Counts:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time pear -j 20 -q 33 -f cDNA_ReadOne.fastq -r cDNA_ReadTwo.fastq -o cDNA_AlignedReads > Pear_cDNA_Log.txt
+
+    cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_cDNA_Seqs.fastq cDNA_AlignedReads.assembled.fastq > 5PrimeTrim_cDNA_Log.txt
+    cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o cDNA_Tags.fastq 5P_Cut_cDNA_Seqs.fastq > 3PrimeTrim_cDNA_Log.txt
+
+    python ~/Scripts/Tag_Tabulator_main.py cDNA_Tags.fastq cDNA_Tags.txt
+
+```
+
+
+
+
+
+
+
+# Replicate 2_2 Processing
+  * Files for this processing are located in the following Directory: /home/jkg36/scratch60/2016_11_21_RQ5500_Rep2_2**
+  
+## pDNA Tag Counts Processing
+
+### Code ran:
+**Pull Reads:**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}  
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_2_2_016/pDNA-2-2-016_S7_L00*_R1_* > HC_RQ5500_pDNA_R1.fastq
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_2_2_016/pDNA-2-2-016_S7_L00*_R2_* > HC_RQ5500_pDNA_R2.fastq
+
+```
+
+**Trim Low Qualities of the Ends of Reads:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time fastx_trimmer -Q 33 -l 131 -i HC_RQ5500_pDNA_R1.fastq -o R1_pDNA_Trimmed.fastq
+    time fastx_trimmer -Q 33 -l 126 -i HC_RQ5500_pDNA_R2.fastq -o R2_pDNA_Trimmed.fastq
+
+```
+
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two, Rename Files so pDNA Doesn't Overwrite:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time python ~/Scripts/Tag_Strander_2016_11_21.py R1_pDNA_Trimmed.fastq R2_pDNA_Trimmed.fastq > Strander_pDNA_Log.txt
+    mv ReadTwo.fastq pDNA_ReadTwo.fastq
+    mv ReadOne.fastq pDNA_ReadOne.fastq
+    mv Garbage_IDs.txt pDNA_Garbage_IDs.txt
+
+```
+
+**Align Read One and Read two into a Contig, Trim into Tags, and Tabulate Counts:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time pear -j 20 -q 33 -f pDNA_ReadOne.fastq -r pDNA_ReadTwo.fastq -o pDNA_AlignedReads > Pear_pDNA_Log.txt
+
+    cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_pDNA_Seqs.fastq pDNA_AlignedReads.assembled.fastq > 5PrimeTrim_pDNA_Log.txt
+    cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o pDNA_Tags.fastq 5P_Cut_pDNA_Seqs.fastq > 3PrimeTrim_pDNA_Log.txt
+
+    python ~/Scripts/Tag_Tabulator_main.py pDNA_Tags.fastq pDNA_Tags.txt
+
+```
+
+## cDNA Tag Counts Processing
+
+### Code ran:
+**Pull Reads:**
+```{r, eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)} 
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_2_2_004/cDNA-2-2-004_S5_L00*_R1_* > HC_RQ5500_cDNA_R1.fastq
+    zcat /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_2_2_004/cDNA-2-2-004_S5_L00*_R2_* > HC_RQ5500_cDNA_R2.fastq
+
+```
+
+**Trim Low Qualities of the Ends of Reads:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time fastx_trimmer -Q 33 -l 131 -i HC_RQ5500_cDNA_R1.fastq -o R1_cDNA_Trimmed.fastq
+    time fastx_trimmer -Q 33 -l 126 -i HC_RQ5500_cDNA_R2.fastq -o R2_cDNA_Trimmed.fastq
+```
+
+**Orient Reads so that 5' + Strand is Read One and 3' - Strand is Read Two, Rename Files so pDNA Doesn't Overwrite:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time python ~/Scripts/Tag_Strander_2016_11_21.py R1_cDNA_Trimmed.fastq R2_cDNA_Trimmed.fastq > Strander_cDNA_Log.txt
+    mv ReadTwo.fastq cDNA_ReadTwo.fastq
+    mv ReadOne.fastq cDNA_ReadOne.fastq
+    mv Garbage_IDs.txt cDNA_Garbage_IDs.txt
+```
+
+**Align Read One and Read two into a Contig, Trim into Tags, and Tabulate Counts:**
+```{r,eval=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60)}
+    time pear -j 20 -q 33 -f cDNA_ReadOne.fastq -r cDNA_ReadTwo.fastq -o cDNA_AlignedReads > Pear_cDNA_Log.txt
+
+    cutadapt -e 0.16 -g GTGTAATAATTCTAGA -o 5P_Cut_cDNA_Seqs.fastq cDNA_AlignedReads.assembled.fastq > 5PrimeTrim_cDNA_Log.txt
+    cutadapt -e 0.16 -a AGATCGGAAGAGCGTC -o cDNA_Tags.fastq 5P_Cut_cDNA_Seqs.fastq > 3PrimeTrim_cDNA_Log.txt
+
+    python ~/Scripts/Tag_Tabulator_main.py cDNA_Tags.fastq cDNA_Tags.txt
+
+```
+
+
+
