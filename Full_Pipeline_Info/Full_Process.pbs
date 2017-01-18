@@ -1,0 +1,35 @@
+#PBS -q default
+#PBS -N MPRA_Inert_Pipeline_Test
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=199:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+#Inert Alignment
+python Pipeline_Temp.py -r INERT -PI .98 -R /home/jkg36/Scripts/ -R1 /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R1_0*,/ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R1_0* -R2 /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R2_0*,/ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R2_0* -o Inert_Pipeline_OUT.txt
+
+#Competent Library
+python ~/Scripts/Pipeline.py -r COMP -R1 /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R1_*,/sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R1_0* -R2 /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R2_*,/sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R2_0* -o Compentent_Pipeline_OUT.txt
+
+#Combiner 
+python ~/Scripts/Pipeline.py -r TAGComparison -I /home/jkg36/scratch60/Pipeline_INERT_Test/Inert_Tag_Counts.txt -C /home/jkg36/scratch60/Pipeline_Competent_Test/CompLib_Tag_Counts.txt  -o TagMerge_Pipeline_OUT.txt
+
+#Rep 1_2
+python ~/Scripts/Pipeline.py -r EXP -s Rep_1_2_cDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R2_*, -o Rep_1_2_cDNA_Pipeline_OUT.txt
+python ~/Scripts/Pipeline.py -r EXP -s Rep_1_2_pDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_1_2_006/pDNA-1-2-006_S6_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_1_2_006/pDNA-1-2-006_S6_L00*_R2_*, -o Rep_1_2_pDNA_Pipeline_OUT.txt
+
+#Rep 1_3
+python ~/Scripts/Pipeline.py -r EXP -s Rep_1_3_cDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_cDNA_1_3_018/cDNA-1-3-018_S4_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_cDNA_1_3_018/cDNA-1-3-018_S4_L00*_R2_*, -o Rep_1_3_cDNA_Pipeline_OUT.txt
+python ~/Scripts/Pipeline.py -r EXP -s Rep_1_3_pDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_pDNA_1_3_019/pDNA-1-3-019_S1_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_pDNA_1_3_019/pDNA-1-3-019_S1_L00*_R2_*, -o Rep_1_3_pDNA_Pipeline_OUT.txt
+
+#Rep 2_2
+python ~/Scripts/Pipeline.py -r EXP -s Rep_2_2_cDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_2_2_004/cDNA-2-2-004_S5_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_2_2_004/cDNA-2-2-004_S5_L00*_R2_*, -o Rep_2_2_cDNA_Pipeline_OUT.txt
+python ~/Scripts/Pipeline.py -r EXP -s Rep_2_2_pDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_2_2_016/pDNA-2-2-016_S7_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_pDNA_2_2_016/pDNA-2-2-016_S7_L00*_R2_*, -o Rep_2_2_pDNA_Pipeline_OUT.txt
+
+#Rep 2_3
+python ~/Scripts/Pipeline.py -r EXP -s Rep_2_3_cDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_cDNA_2_3_020/cDNA-2-3-020_S2_L00*_R1*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_cDNA_2_3_020/cDNA-2-3-020_S2_L00*_R2*, -o Rep_2_3_cDNA_Pipeline_OUT.txt
+python ~/Scripts/Pipeline.py -r EXP -s Rep_2_3_pDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_pDNA_2_3_021/pDNA-2-3-021_S3_L00*_R1*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161213_K00175_0025_AHH2LWBBXX/Data/Intensities/BaseCalls/Unaligned-Single/Project_Jkg36/Sample_pDNA_2_3_021/pDNA-2-3-021_S3_L00*_R2*, -o Rep_2_3_pDNA_Pipeline_OUT.txt
+
+#Annotate
+python ~/Scripts/Pipeline.py -r ANOTE -R /home/jkg36/Scripts/ -I /home/jkg36/scratch60/Inert_PI_Test/PI_98/Inert_Tag_Counts.txt -C /home/jkg36/scratch60/Pipeline_Competent_Test/CompLib_Tag_Counts.txt -EP /home/jkg36/scratch60/Pipeline_Rep_1_2_Test/Rep_1_2_pDNA_Tag_Counts.txt,/home/jkg36/scratch60/2016_11_21_RQ5500_Rep_1_3/Rep_1_3_pDNA_Tag_Counts.txt,/home/jkg36/scratch60/Pipeline_Rep_2_2_Test/Rep_2_2_pDNA_Tag_Counts.txt,/home/jkg36/scratch60/2016_11_21_RQ5500_Rep_2_3/Rep_2_3_pDNA_Tag_Counts.txt -ET /home/jkg36/scratch60/Pipeline_Rep_1_2_Test/Rep_1_2_cDNA_Tag_Counts.txt,/home/jkg36/scratch60/2016_11_21_RQ5500_Rep_1_3/Rep_1_3_cDNA_Tag_Counts.txt,/home/jkg36/scratch60/Pipeline_Rep_2_2_Test/Rep_2_2_cDNA_Tag_Counts.txt,/home/jkg36/scratch60/2016_11_21_RQ5500_Rep_2_3/Rep_2_3_cDNA_Tag_Counts.txt -o AnnoteTestOut.txt

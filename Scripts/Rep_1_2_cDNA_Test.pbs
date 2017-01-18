@@ -1,0 +1,9 @@
+#PBS -q default
+#PBS -N MPRA_Rep_1_2_cDNA_Pipeline_Test
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=99:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+python ~/Scripts/Pipeline.py -r EXP -s Rep_1_2_cDNA -R1 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R1_*, -R2 /ycga-gpfs/sequencers/illumina/sequencerZ/runs/161118_K00175_0020_AHG7FHBBXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_cDNA_1_2_002/cDNA-1-2-002_S4_L00*_R2_*, -o Rep_1_2_cDNA_Pipeline_OUT.txt

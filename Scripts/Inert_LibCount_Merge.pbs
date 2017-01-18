@@ -1,0 +1,9 @@
+#PBS -q default
+#PBS -N Inert_LibCount_Merge
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=99:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+python 2016_12_20_PI_DownSampleMerge.py PI88_Inert_Lib_Counts.txt.txt PI_90_Inert_Lib_Counts.txt PI_92_Inert_Lib_Counts.txt PI_94_Inert_Lib_Counts.txt PI_96_Inert_Lib_Counts.txt PI_98_Inert_Lib_Counts.txt > Merged_INERT_Lib_Counts.tt

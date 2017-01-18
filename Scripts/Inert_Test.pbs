@@ -1,0 +1,12 @@
+#PBS -q default
+#PBS -N MPRA_Inert_Pipeline_Test
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=99:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+python ~/Scripts/Pipeline.py -r INERT -PI .88 -R1 /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R1_0*,/ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R1_0* -R2 /ycga-gpfs/sequencers/illumina/sequencerV/runs/160923_D00306_0730_BHY3KJBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_NOBCX/HC_NOBCX_NoIndex_L002_R2_0*,/ycga-ba/ba_sequencers6/sequencerV/runs/160722_D00306_0695_AHK5VKBCXX/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC-RQ4789-001_004/HC-RQ4789-001_004_TGACCA_L002_R2_0* -o Inert_Pipeline_OUT.txt
+
+
+

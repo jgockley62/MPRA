@@ -1,0 +1,10 @@
+#PBS -q default
+#PBS -N MPRA_Compentent_Pipeline_Test
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=99:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+python ~/Scripts/Pipeline.py -r COMP -R1 /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R1_*,/sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R1_0* -R2 /ycga-gpfs/sequencers/illumina/sequencerY/runs/161014_K00162_0119_BHFTVYBBXX/Data/Intensities/BaseCalls/Unaligned-Single-1/Project_Jkg36/Sample_HC_Tags_014/HC-Tags-014_S26_L00*_R2_*,/sequencers/illumina/sequencerX/runs/161024_D00536_0278_AH2HKTBCXY/Data/Intensities/BaseCalls/Unaligned/Project_Jkg36/Sample_HC_Tags_014/HC_Tags_014_AGTTCC_L00*_R1_0* -o Compentent_Pipeline_OUT.txt
+

@@ -1,0 +1,10 @@
+#PBS -q default
+#PBS -N CompTag_Count_inINERT_Merge
+#PBS -l nodes=1:ppn=8,mem=35gb
+#PBS -l walltime=99:00:00
+#PBS -m abe -M Jake.Gockley@yale.edu
+
+cd $PBS_O_WORKDIR
+
+python 2016_12_20_PI_DownSampleMerge.py PI88_Comp_TagCounts_In_Inert.txt PI_90_Comp_TagCounts_In_Inert.txt PI_92_Comp_TagCounts_In_Inert.txt PI_94_Comp_TagCounts_In_Inert.txt PI_96_Comp_TagCounts_In_Inert.txt PI_98_Comp_TagCounts_In_Inert.txt > Merged_Comp_Lib_CountsinINERT.txt
+
